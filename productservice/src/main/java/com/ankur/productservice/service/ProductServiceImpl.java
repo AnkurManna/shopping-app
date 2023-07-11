@@ -1,6 +1,7 @@
 package com.ankur.productservice.service;
 
 import com.ankur.productservice.entity.Product;
+import com.ankur.productservice.exception.ProductServiceCustomException;
 import com.ankur.productservice.model.ProductRequest;
 import com.ankur.productservice.model.ProductResponse;
 import com.ankur.productservice.repository.ProductRepository;
@@ -32,7 +33,7 @@ public class ProductServiceImpl implements ProductService{
     public ProductResponse getProductById(long productId) {
         log.info("Get the product for productId {}",productId);
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product with given id not found"));
+                .orElseThrow(() -> new ProductServiceCustomException("Product with given id not found","PRODUCT_NOT_FOUND"));
 
         ProductResponse productResponse = new ProductResponse();
         BeanUtils.copyProperties(product,productResponse);
