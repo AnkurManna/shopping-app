@@ -1,5 +1,6 @@
-package com.ankur.paymentservice.model;
+package com.ankur.orderservice.external.request;
 
+import com.ankur.orderservice.model.PaymentMode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

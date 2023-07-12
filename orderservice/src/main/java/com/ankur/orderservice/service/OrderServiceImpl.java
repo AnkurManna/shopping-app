@@ -1,8 +1,14 @@
 package com.ankur.orderservice.service;
 
 import com.ankur.orderservice.entity.Order;
+import com.ankur.orderservice.exception.CustomException;
+import com.ankur.orderservice.external.client.PaymentService;
 import com.ankur.orderservice.external.client.ProductService;
+import com.ankur.orderservice.external.request.PaymentRequest;
+import com.ankur.orderservice.external.response.PaymentResponse;
+import com.ankur.orderservice.external.response.ProductResponse;
 import com.ankur.orderservice.model.OrderRequest;
+import com.ankur.orderservice.model.OrderResponse;
 import com.ankur.orderservice.repository.OrderRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +25,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private PaymentService paymentService;
     @Override
     public long placeOrder(OrderRequest orderRequest) {
 
@@ -40,7 +49,48 @@ public class OrderServiceImpl implements OrderService {
                 .quantity(orderRequest.getQuantity())
                 .build();
         order = orderRepository.save(order);
+
+        log.info("Calling Payment Service to complete payment");
+        PaymentRequest paymentRequest = PaymentRequest.builder()
+                .orderId(order.getId())
+                .paymentMode(orderRequest.getPaymentMode())
+                .amount(orderRequest.getTotalAmount())
+                .build();
+        String orderStatus = null;
+        try {
+            paymentService.doPayment(paymentRequest);
+            log.info("Payment done Successfully . Changing Order status to Placed");
+            orderStatus = "PLACED";
+        }
+        catch (Exception e)
+        {
+            log.error("Error occured in payment. Changing order status yo PENDING");
+            orderStatus = "PAYMENT_FAILED";
+        }
+        order.setOrderStatus(orderStatus);
+        orderRepository.save(order);
         log.info("Order Places successfully with Order id: {}",order.getId());
         return order.getId();
+    }
+
+    @Override
+    public OrderResponse getOrderDetails(long orderId) {
+        log.info("Get order details for Order Id : {}",orderId);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException("Order not found the given id","NOT_FOUND",404));
+
+        ProductResponse productResponse = productService.getProductById(order.getProductId())
+                .getBody();
+        PaymentResponse paymentResponse = paymentService.getPaymentDetailsByOrderId(orderId).getBody();
+
+        OrderResponse orderResponse = OrderResponse.builder()
+                .orderId(order.getId())
+                .orderStatus(order.getOrderStatus())
+                .amount(order.getAmount())
+                .orderDate(order.getOrderDate())
+                .product(productResponse)
+                .payment(paymentResponse)
+                .build();
+        return orderResponse;
     }
 }

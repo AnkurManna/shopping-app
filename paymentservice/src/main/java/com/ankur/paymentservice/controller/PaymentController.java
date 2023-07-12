@@ -1,14 +1,13 @@
 package com.ankur.paymentservice.controller;
 
+import com.ankur.paymentservice.entity.TransactionDetails;
 import com.ankur.paymentservice.model.PaymentRequest;
+import com.ankur.paymentservice.model.PaymentResponse;
 import com.ankur.paymentservice.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/payment")
@@ -23,5 +22,12 @@ public class PaymentController {
                 paymentService.doPayment(paymentRequest),
                 HttpStatus.OK
         );
+    }
+    @GetMapping()
+    public ResponseEntity<PaymentResponse> getTransactionDetailsByOrderId(long orderId)
+    {
+        PaymentResponse paymentResponse = paymentService.getPaymentDetailsByOrderId(orderId);
+
+        return new ResponseEntity<>(paymentResponse,HttpStatus.OK);
     }
 }
