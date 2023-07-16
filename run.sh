@@ -28,3 +28,5 @@ run_service() {
 run_service "$serviceregistry" "serviceregistry"
 run_service "$configserver" "configserver"
 run_service "$productservice" "productservice"
+
+#to do : develop script which doesn't discard logs i.e. opens a new terminal and run process in that
