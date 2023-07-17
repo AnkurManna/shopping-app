@@ -18,11 +18,11 @@ configuration related this external circuitbreaker is in .properties file
 public interface ProductService {
 
     @PutMapping("/reduceQuantity/{id}")
-    ResponseEntity<Void> reduceQuantity(@PathVariable("id") long productId,
+    void reduceQuantity(@PathVariable("id") long productId,
                                                @RequestParam long quantity);
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable("id") long productId);
+     ResponseEntity<ProductResponse> getProductById(@PathVariable("id") long productId);
 
     default void fallBack(Exception e)
     {

@@ -13,6 +13,7 @@ import com.ankur.orderservice.repository.OrderRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
 
@@ -28,6 +29,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private PaymentService paymentService;
+    @Autowired
+    private RestTemplate restTemplate;
     @Override
     public long placeOrder(OrderRequest orderRequest) {
 
@@ -78,11 +81,19 @@ public class OrderServiceImpl implements OrderService {
         log.info("Get order details for Order Id : {}",orderId);
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new CustomException("Order not found the given id","NOT_FOUND",404));
-
+        /*
         ProductResponse productResponse = productService.getProductById(order.getProductId())
                 .getBody();
-        PaymentResponse paymentResponse = paymentService.getPaymentDetailsByOrderId(orderId).getBody();
-
+        PaymentResponse paymentResponse = paymentService.getPaymentDetailsByOrderId(orderId)
+        .getBody();
+        */
+        log.info("Invoking Product Service to fetch the product id : {}",order.getProductId());
+        ProductResponse productResponse = restTemplate.getForObject(
+                "http://PRODUCT-SERVICE/product/" + order.getProductId(),ProductResponse.class
+        );
+        PaymentResponse paymentResponse = restTemplate.getForObject(
+                "http://PAYMENT-SERVICE/payment/" + order.getId() ,PaymentResponse.class
+        );
         OrderResponse orderResponse = OrderResponse.builder()
                 .orderId(order.getId())
                 .orderStatus(order.getOrderStatus())

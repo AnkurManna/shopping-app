@@ -3,6 +3,7 @@
 # Specify the directory path
 serviceregistry="./service-registry/"
 configserver="./configserver/"
+cloudgateway="./cloudgateway/"
 productservice="./productservice/"
 orderservice="./orderservice/"
 paymentservice="./paymentservice/"
@@ -27,6 +28,8 @@ run_service() {
 # Run the Spring Boot projects
 run_service "$serviceregistry" "serviceregistry"
 run_service "$configserver" "configserver"
+run_service "$cloudgateway" "cloudgateway"
 run_service "$productservice" "productservice"
-
+run_service "$orderservice" "orderservice"
+run_service "$paymentservice" "paymentservice"
 #to do : develop script which doesn't discard logs i.e. opens a new terminal and run process in that

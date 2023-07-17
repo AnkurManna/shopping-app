@@ -1,6 +1,5 @@
 package com.ankur.paymentservice.controller;
 
-import com.ankur.paymentservice.entity.TransactionDetails;
 import com.ankur.paymentservice.model.PaymentRequest;
 import com.ankur.paymentservice.model.PaymentResponse;
 import com.ankur.paymentservice.service.PaymentService;
@@ -23,8 +22,8 @@ public class PaymentController {
                 HttpStatus.OK
         );
     }
-    @GetMapping()
-    public ResponseEntity<PaymentResponse> getTransactionDetailsByOrderId(long orderId)
+    @GetMapping("/{orderId}")
+    public ResponseEntity<PaymentResponse> getTransactionDetailsByOrderId(@PathVariable long orderId)
     {
         PaymentResponse paymentResponse = paymentService.getPaymentDetailsByOrderId(orderId);
 

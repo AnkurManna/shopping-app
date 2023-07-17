@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 public interface PaymentService {
 
     @PostMapping
-    ResponseEntity<Long> doPayment(@RequestBody PaymentRequest paymentRequest);
+    void doPayment(@RequestBody PaymentRequest paymentRequest);
 
     @GetMapping()
      ResponseEntity<PaymentResponse> getPaymentDetailsByOrderId(long orderId);

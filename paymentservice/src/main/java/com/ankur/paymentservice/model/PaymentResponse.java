@@ -15,7 +15,6 @@ import java.time.Instant;
 public class PaymentResponse {
 
     private long id;
-
     private long orderId;
     private String paymentMode;
     private String referenceNumber;
