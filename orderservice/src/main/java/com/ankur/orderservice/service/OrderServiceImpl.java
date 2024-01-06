@@ -12,6 +12,7 @@ import com.ankur.orderservice.model.OrderResponse;
 import com.ankur.orderservice.repository.OrderRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,6 +32,11 @@ public class OrderServiceImpl implements OrderService {
     private PaymentService paymentService;
     @Autowired
     private RestTemplate restTemplate;
+
+    @Value("${microservices.product}")
+    private String productServiceUrl;
+    @Value("${microservices.payment}")
+    private String paymentServiceUrl;
     @Override
     public long placeOrder(OrderRequest orderRequest) {
 
@@ -89,13 +95,13 @@ public class OrderServiceImpl implements OrderService {
         */
         log.info("Invoking Product Service to fetch the product id : {}",order.getProductId());
         ProductResponse productResponse = restTemplate.getForObject(
-                "http://PRODUCT-SERVICE/product/" + order.getProductId(),ProductResponse.class
+                productServiceUrl + order.getProductId(),ProductResponse.class
         );
 
         log.info("Invoking Payment Service to fetch the product id : {}",order.getProductId());
 
         PaymentResponse paymentResponse = restTemplate.getForObject(
-                "http://PAYMENT-SERVICE/payment/" + order.getId() ,PaymentResponse.class
+                paymentServiceUrl + order.getId() ,PaymentResponse.class
         );
         assert paymentResponse != null;
         log.info("Payment Response is : {}",paymentResponse.getPaymentStatus());

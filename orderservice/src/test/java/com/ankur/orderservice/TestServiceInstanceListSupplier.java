@@ -17,13 +17,13 @@ public class TestServiceInstanceListSupplier implements ServiceInstanceListSuppl
     @Override
     public Flux<List<ServiceInstance>> get() {
         List<ServiceInstance> result = new ArrayList<>();
-        result.add(new DefaultServiceInstance("PAYMENT-SERVICE",
-                "PAYMENT-SERVICE",
+        result.add(new DefaultServiceInstance("payment-service-svc",
+                "payment-service-svc",
                 "localhost",
                 8080,
                 false));
-        result.add(new DefaultServiceInstance("PRODUCT-SERVICE",
-                "PRODUCT-SERVICE",
+        result.add(new DefaultServiceInstance("product-service-svc",
+                "product-service-svc",
                 "localhost",
                 8080,
                 false));

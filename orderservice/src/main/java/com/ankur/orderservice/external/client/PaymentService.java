@@ -8,7 +8,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 @CircuitBreaker(name = "external",fallbackMethod = "fallBack")
-@FeignClient(name = "PAYMENT-SERVICE/payment")
+@FeignClient(name = "payment" , url="${microservices.payment}")
 public interface PaymentService {
 
     @PostMapping

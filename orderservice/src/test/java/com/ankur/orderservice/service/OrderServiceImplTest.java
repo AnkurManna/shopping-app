@@ -11,13 +11,16 @@ import com.ankur.orderservice.model.OrderRequest;
 import com.ankur.orderservice.model.OrderResponse;
 import com.ankur.orderservice.model.PaymentMode;
 import com.ankur.orderservice.repository.OrderRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
@@ -42,6 +45,19 @@ public class OrderServiceImplTest {
     @InjectMocks
     OrderService orderService = new OrderServiceImpl();
 
+    @Value("${microservices.product}")
+    private String productServiceUrl;
+
+    @Value("${microservices.payment}")
+    private String paymentServiceUrl;
+
+    @BeforeEach
+    public void setup()
+    {
+        ReflectionTestUtils.setField(orderService,"productServiceUrl",productServiceUrl);
+        ReflectionTestUtils.setField(orderService,"paymentServiceUrl",paymentServiceUrl);
+    }
+
     @DisplayName("Get Order - Success Scenario")
     @Test
     void test_When_Order_Success()
@@ -50,11 +66,11 @@ public class OrderServiceImplTest {
         when(orderRepository.findById(anyLong()))
                         .thenReturn(Optional.of(order));
         when(restTemplate.getForObject(
-                "http://PRODUCT-SERVICE/product/" + order.getProductId(), ProductResponse.class
+                productServiceUrl + order.getProductId(), ProductResponse.class
         )).thenReturn(getMockProductResponse());
 
         when(restTemplate.getForObject(
-                "http://PAYMENT-SERVICE/payment/" + order.getId() , PaymentResponse.class
+                paymentServiceUrl + order.getId() , PaymentResponse.class
         )).thenReturn(getMockPaymentResponse());
 
         OrderResponse orderResponse = orderService.getOrderDetails(1L);

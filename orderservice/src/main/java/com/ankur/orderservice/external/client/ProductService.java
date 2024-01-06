@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 configuration related this external circuitbreaker is in .properties file
  */
 @CircuitBreaker(name = "external" , fallbackMethod = "fallBack")
-@FeignClient(name = "PRODUCT-SERVICE/product")
+@FeignClient(name = "product" , url="${microservices.product}")
 public interface ProductService {
 
     @PutMapping("/reduceQuantity/{id}")
