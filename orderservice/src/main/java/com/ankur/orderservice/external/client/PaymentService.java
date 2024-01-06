@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.*;
 public interface PaymentService {
 
     @PostMapping
-    void doPayment(@RequestBody PaymentRequest paymentRequest);
+    ResponseEntity<Long> doPayment(@RequestBody PaymentRequest paymentRequest);
 
     @GetMapping()
      ResponseEntity<PaymentResponse> getPaymentDetailsByOrderId(long orderId);
 
-    default void fallBack(Exception e)
+    default ResponseEntity<Long> fallBack(Exception e)
     {
         throw new CustomException("Payment Service is not accessible","UNAVAILABLE",500);
     }

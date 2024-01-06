@@ -28,13 +28,18 @@ run_core_service() {
 run_utility_service()
 {
   echo "Running Utility Services "
-  docker run --name localzipkin -d -p 9411:9411 openzipkin/zipkin
+  #docker run --name localzipkin -d -p 9411:9411 openzipkin/zipkin
+  podman run --name localzipkin -dt -p 9411:9411/tcp docker.io/openzipkin/zipkin
   echo "Started zipkin container with name localzipkin"
-  docker run --name localredis -d -p 6379:6379 redis
+  #docker run --name localredis -d -p 6379:6379 redis
+  podman run --name localredis -dt -p 6379:6379/tcp docker.io/library/redis
   echo "Started redis container with name localredis"
 }
-# Run the Spring Boot projects
-run_utility_service
+
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.9.jdk/Contents/Home/
+# Run Utility Services
+#run_utility_service
+# Run the Spring Boot Services
 run_core_service "$serviceregistry" "serviceregistry"
 run_core_service "$configserver" "configserver"
 run_core_service "$cloudgateway" "cloudgateway"

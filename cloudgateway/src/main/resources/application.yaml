@@ -5,7 +5,7 @@ spring:
   application:
     name: API-GATEWAY
   config:
-    import: configserver:http://localhost:9296
+    import: configserver:${CONFIG_SERVER_URL:http://localhost:9296}
   cloud:
     gateway:
       routes:
@@ -13,38 +13,48 @@ spring:
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/order/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: ORDER-SERVICE
-                fallbackuri: forward:/orderServiceFallBack
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 1
-                redis-rate-limiter.burstCapacity: 1
+          #filters:
+          #  - name: CircuitBreaker
+          #    args:
+          #      name: ORDER-SERVICE
+          #      fallbackuri: forward:/orderServiceFallBack
+          #  - name: RequestRateLimiter
+          #    args:
+          #      redis-rate-limiter.replenishRate: 1
+          #      redis-rate-limiter.burstCapacity: 1
         - id: PRODUCT-SERVICE
           uri: lb://PRODUCT-SERVICE
           predicates:
             - Path=/product/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: PRODUCT-SERVICE
-                fallbackuri: forward:/productServiceFallBack
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 1
-                redis-rate-limiter.burstCapacity: 1
+          #filters:
+          #  - name: CircuitBreaker
+          #    args:
+          #      name: PRODUCT-SERVICE
+          #      fallbackuri: forward:/productServiceFallBack
+          #  - name: RequestRateLimiter
+          #    args:
+          #      redis-rate-limiter.replenishRate: 1
+          #      redis-rate-limiter.burstCapacity: 1
         - id: PAYMENT-SERVICE
           uri: lb://PAYMENT-SERVICE
           predicates:
             - Path=/payment/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: PAYMENT-SERVICE
-                fallbackuri: forward:/paymentServiceFallBack
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 1
-                redis-rate-limiter.burstCapacity: 1
+          #filters:
+          #  - name: CircuitBreaker
+          #    args:
+          #      name: PAYMENT-SERVICE
+          #      fallbackuri: forward:/paymentServiceFallBack
+          #  - name: RequestRateLimiter
+          #    args:
+          #      redis-rate-limiter.replenishRate: 1
+          #      redis-rate-limiter.burstCapacity: 1
+
+okta:
+  oauth2:
+    issuer: ${okta_issuer}
+    audience: api://default
+    client-id: ${okta_client_id}
+    client-secret: ${okta_client_secret}
+    scopes: openid,profile,email,offline_access
+
+#provide okta_issuer,okta_client_id,okta_client_secret in run environment

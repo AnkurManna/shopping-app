@@ -91,9 +91,14 @@ public class OrderServiceImpl implements OrderService {
         ProductResponse productResponse = restTemplate.getForObject(
                 "http://PRODUCT-SERVICE/product/" + order.getProductId(),ProductResponse.class
         );
+
+        log.info("Invoking Payment Service to fetch the product id : {}",order.getProductId());
+
         PaymentResponse paymentResponse = restTemplate.getForObject(
                 "http://PAYMENT-SERVICE/payment/" + order.getId() ,PaymentResponse.class
         );
+        assert paymentResponse != null;
+        log.info("Payment Response is : {}",paymentResponse.getPaymentStatus());
         OrderResponse orderResponse = OrderResponse.builder()
                 .orderId(order.getId())
                 .orderStatus(order.getOrderStatus())
