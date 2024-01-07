@@ -41,7 +41,112 @@ POST	| /payment/doPayment	| Do Payment(only function calls no gateway involved)	
 
 ![shopping-app-infra drawio](https://github.com/AnkurManna/shopping-app/assets/53156149/921da8bb-3b2a-4108-8b2f-ea96652ef32f)
 
+### Config service
+[Spring Cloud Config](http://cloud.spring.io/spring-cloud-config/spring-cloud-config.html) is horizontally scalable centralized configuration service for the distributed systems. It uses a pluggable repository layer that currently supports local storage, Git, and Subversion.
 
+### Auth Server
+
+Authorization responsibilities are extracted to a separate server, which grants [OAuth2 tokens](https://tools.ietf.org/html/rfc6749) for the backend resource services. Auth Server is used for user authorization as well as for secure machine-to-machine communication inside the perimeter.
+[Okta](https://developer.okta.com/) has been used as Auth Server and implement OAuth2.0 in this app.
+
+In this project, I use [`Client Credentials`](https://tools.ietf.org/html/rfc6749#section-4.4) grant for service-to-service communciation.
+
+Spring Cloud Security provides convenient annotations and autoconfiguration to make this really easy to implement on both server and client side.
+
+On the client side, everything works exactly the same as with traditional session-based authorization. You can retrieve `Principal` object from the request, check user roles using the expression-based access control and `@PreAuthorize` annotation.
+
+``` java
+    @PreAuthorize("hasAuthority('Admin') || hasAuthority('Customer')")
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderResponse> getOrderDetails(@PathVariable long orderId)
+    {
+        OrderResponse orderResponse = orderService.getOrderDetails(orderId);
+        log.info("Order Details is : {}",orderResponse.toString());
+        return new ResponseEntity<>(orderResponse,HttpStatus.OK);
+    }
+```
+
+Create your account and register your application to populate `Okta configs` used in app. Common template used in different services is given below
+```yml
+okta:
+  oauth2:
+    issuer: ${okta_issuer}
+    audience: api://default
+    client-id: ${okta_client_id}
+    client-secret: ${okta_client_secret}
+    scopes: openid,profile,email,offline_access
+```
+
+### API Gateway
+API Gateway is a single entry point into the system, used to handle requests and routing them to the appropriate backend service. Also, it can be used for authentication, insights, stress and canary testing, service migration, static response handling and active traffic management.
+
+```yml
+  cloud:
+    gateway:
+      routes:
+        - id : ORDER-SERVICE
+          uri: http://order-service-svc
+          predicates:
+            - Path=/order/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: ORDER-SERVICE
+                fallbackuri: forward:/orderServiceFallBack
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 1
+
+```
+Above snippets says how requests starting with `/orders` will be routed to `order-service-svc` which is a `k8s Service` acting as entrypoint to `order-service` instances.
+In development env we can have `lb://ORDER-SERVICE` instead of `k8s Service` for ease.
+
+```java
+    @GetMapping("/login")
+    public ResponseEntity<AuthenticationResponse> login (
+            @AuthenticationPrincipal OidcUser oidcUser , Model model ,
+            @RegisteredOAuth2AuthorizedClient("okta") OAuth2AuthorizedClient client)
+    {
+            AuthenticationResponse response = AuthenticationResponse.builder()
+                    .userId(oidcUser.getEmail())
+                    .accessToken(client.getAccessToken().getTokenValue())
+                    .refreshToken(client.getRefreshToken().getTokenValue())
+                    .expiresAt(client.getAccessToken().getExpiresAt().getEpochSecond())
+                    .authorityList(oidcUser.getAuthorities()
+                            .stream()
+                            .map(GrantedAuthority::getAuthority)
+                            .collect(Collectors.toList()))
+                    .build();
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+```
+Above snippet is for login functionality getting executed at API Gateway with connection to `Okta`.
+
+### Service Discovery
+
+`Dev Env`
+
+Service Discovery allows automatic detection of the network locations for all registered services. These locations might have dynamically assigned addresses due to auto-scaling, failures or upgrades.
+
+The key part of Service discovery is the Registry. In this project, we use Netflix Eureka. Eureka is a good example of the client-side discovery pattern, where client is responsible for looking up the locations of available service instances and load balancing between them.
+
+Client support enabled with `@EnableDiscoveryClient` annotation :
+``` yml
+spring:
+  application:
+    name: ORDER-SERVICE
+```
+
+This service will be registered with the Eureka Server and provided with metadata such as host, port, health indicator URL, home page etc. Eureka receives heartbeat messages from each instance belonging to the service. If the heartbeat fails over a configurable timetable, the instance will be removed from the registry.
+
+Also, Eureka provides a simple interface where you can track running services and a number of available instances: `http://localhost:8761`
+
+`Prod Env`
+
+As the application is deployed in `K8s Cluster`, we remove eureka client and leverage `K8s Services`. Service definitions can be found in `K8s-services` branch inside `K8s` directory of each services. 
 
 ![shopping-app drawio](https://github.com/AnkurManna/shopping-app/assets/53156149/8d24ee98-13c0-4950-8fa4-3e0682cc8beb)
 
