@@ -148,7 +148,6 @@ Also, Eureka provides a simple interface where you can track running services an
 
 As the application is deployed in `K8s Cluster`, we remove eureka client and leverage `K8s Services`. Service definitions can be found in `K8s-services` branch inside `K8s` directory of each services. 
 
-![shopping-app drawio](https://github.com/AnkurManna/shopping-app/assets/53156149/8d24ee98-13c0-4950-8fa4-3e0682cc8beb)
 
 # Quickstart: 
 ```
